@@ -90,7 +90,19 @@ const SalesPage = ({ answers }: SalesPageProps) => {
   const secs = String(countdown % 60).padStart(2, "0");
 
   const scrollToPricing = () => {
-    pricingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const target = pricingRef.current;
+    if (!target) return;
+
+    const container = salesScrollRef.current;
+    if (!container) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const top = targetRect.top - containerRect.top + container.scrollTop;
+    container.scrollTo({ top, behavior: "smooth" });
   };
 
   const sequences = [
@@ -189,7 +201,7 @@ const SalesPage = ({ answers }: SalesPageProps) => {
     </div>
   );
 
-  const BasicPlanPage = () => (
+  const renderBasicPlanPage = () => (
     <div className="h-[100dvh] bg-background flex flex-col">
       <div ref={basicScrollRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain no-scrollbar">
         <div className="border-b border-border bg-background/95 backdrop-blur">
@@ -336,7 +348,7 @@ const SalesPage = ({ answers }: SalesPageProps) => {
   );
 
   if (showBasicPage) {
-    return <BasicPlanPage />;
+    return renderBasicPlanPage();
   }
 
   return (
@@ -447,7 +459,12 @@ const SalesPage = ({ answers }: SalesPageProps) => {
         </div>
 
         <button
-          onClick={scrollToPricing}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            scrollToPricing();
+          }}
           className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg"
         >
           <Lock className="w-5 h-5" /> {T("salesAccessProtocol")}
